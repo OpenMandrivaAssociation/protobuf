@@ -28,7 +28,7 @@ Source0:	https://github.com/google/protobuf/archive/v%{version}.tar.gz
 Source1:	ftdetect-proto.vim
 Source2:	protobuf-init.el
 Source3:	%{name}.rpmlintrc
-Patch0:		protobuf-3.2.0-emacs-24.4.patch
+#Patch0:		protobuf-3.2.0-emacs-24.4.patch
 Patch1:		protobuf-3.2.0-gtest.patch
 
 BuildRequires:	automake autoconf libtool pkgconfig zlib-devel
@@ -211,7 +211,7 @@ Protocol Buffer Parent POM.
 
 %prep
 %setup -q
-%patch0 -p1 -b .emacs
+
 %if %{without gtest}
 rm -rf gtest
 %patch1 -p1 -b .gtest
