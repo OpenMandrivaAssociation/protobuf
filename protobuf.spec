@@ -7,13 +7,16 @@
 %define old_devname %mklibname %{name} -d
 %define old_statname %mklibname %{name} -d -s
 
-# Build -python subpackages
-%bcond_without python
-%bcond_without python2
+# Build -python subpackage
+%bcond_with python
 # Build -java subpackage
 %bcond_without java
 # Don't require gtest
 %bcond_with gtest
+
+%if %{with python}
+%define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
+%endif
 
 %global emacs_lispdir %{_datadir}/emacs/site-lisp
 %global emacs_startdir %{_datadir}/emacs/site-lisp/site-start.d
@@ -58,7 +61,6 @@ breaking deployed programs that are compiled against the "old" format.
 %package compiler
 Summary:	Protocol Buffers compiler
 Requires:	%{name} = %{EVRD}
-Group:		Development/Other
 
 %description compiler
 This package contains Protocol Buffers compiler for all programming
@@ -66,7 +68,6 @@ languages.
 
 %package devel
 Summary:	Protocol Buffers C++ headers and libraries
-Group:		Development/Other
 Requires:	%{name} = %{EVRD}
 Requires:	%{name}-compiler = %{EVRD}
 Requires:	pkgconfig
@@ -78,7 +79,6 @@ C++ headers and libraries
 
 %package lite
 Summary:	Protocol Buffers LITE_RUNTIME libraries
-Group:		Development/Other
 
 %description lite
 Protocol Buffers built with optimize_for = LITE_RUNTIME.
@@ -91,7 +91,6 @@ lacks descriptors, reflection, and some other features.
 Summary:	Protocol Buffers LITE_RUNTIME development libraries
 Requires:	%{name}-devel = %{EVRD}
 Requires:	%{name}-lite = %{EVRD}
-Group:		Development/Other
 
 %description lite-devel
 This package contains development libraries built with
@@ -104,7 +103,6 @@ lacks descriptors, reflection, and some other features.
 %if %{with python}
 %package python
 Summary:	Python bindings for Google Protocol Buffers
-Group:		Development/Python
 BuildRequires:	python-devel
 BuildRequires:	python-setuptools
 
@@ -112,21 +110,9 @@ BuildRequires:	python-setuptools
 This package contains Python libraries for Google Protocol Buffers
 %endif
 
-%if %{with python2}
-%package python2
-Summary:	Python2 bindings for Google Protocol Buffers
-Group:		Development/Python
-BuildRequires:	python2-devel
-BuildRequires:	python2-setuptools
-
-%description python2
-This package contains Python2 libraries for Google Protocol Buffers
-%endif
-
 %package vim
 Summary:	Vim syntax highlighting for Google Protocol Buffers descriptions
 Requires:	vim-enhanced
-Group:		Development/Other
 
 %description vim
 This package contains syntax highlighting for Google Protocol Buffers
@@ -134,7 +120,6 @@ descriptions in Vim editor
 
 %package emacs
 Summary:	Emacs mode for Google Protocol Buffers descriptions
-Group:		Development/Other
 
 %description emacs
 This package contains syntax highlighting for Google Protocol Buffers
@@ -142,7 +127,6 @@ descriptions in the Emacs editor.
 
 %package emacs-el
 Summary:	Elisp source files for Google protobuf Emacs mode
-Group:		Development/Other
 Requires:	protobuf-emacs = %{version}
 
 %description emacs-el
@@ -154,7 +138,6 @@ under GNU Emacs. You do not need to install this package to use
 %if %{with java}
 %package java
 Summary:	Java Protocol Buffers runtime library
-Group:		Development/Java
 BuildRequires:	java-devel >= 1.6
 BuildRequires:	jpackage-utils
 BuildRequires:  maven-local
@@ -175,38 +158,13 @@ Provides:	osgi(com.google.protobuf.java) = %{version}
 %description java
 This package contains Java Protocol Buffers runtime library.
 
-%package java-util
-Summary:        Utilities for Protocol Buffers
-BuildArch:      noarch
-
-%description java-util
-Utilities to work with protos. It contains JSON support
-as well as utilities to work with proto3 well-known types.
-
 %package javadoc
 Summary:	Javadocs for %{name}-java
-Group:		Development/Java
 Requires:	jpackage-utils
 Requires:	%{name}-java = %{EVRD}
 
 %description javadoc
 This package contains the API documentation for %{name}-java.
-
-%package javanano
-Summary:        Protocol Buffer JavaNano API
-BuildArch:      noarch
-
-%description javanano
-JavaNano is a special code generator and runtime
-library designed specially for resource-restricted
-systems, like Android.
-
-%package parent
-Summary:        Protocol Buffer Parent POM
-BuildArch:      noarch
-
-%description parent
-Protocol Buffer Parent POM.
 
 %endif
 
@@ -220,19 +178,8 @@ rm -rf gtest
 chmod 644 examples/*
 %if %{with java}
 %pom_remove_parent java/pom.xml
-%pom_remove_dep -r org.easymock:easymockclassextension java/
-# Remove class using easymockclassextension
-rm -f java/core/src/test/java/com/google/protobuf/ServiceTest.java
-
-# used by https://github.com/googlei18n/libphonenumber
-%pom_xpath_inject "pom:project/pom:modules" "<module>../javanano</module>" java/pom.xml
-%pom_remove_parent javanano/pom.xml
-%pom_remove_dep org.easymock:easymockclassextension javanano/pom.xml
-
-%endif
-
-%if %{with python2}
-cp -ra python python2
+%pom_remove_dep org.easymock:easymockclassextension java/pom.xml
+rm -rf java/src/test
 %endif
 
 %build
@@ -246,14 +193,7 @@ export PTHREAD_LIBS="-lpthread"
 
 %if %{with python}
 pushd python
-%{__python} ./setup.py build
-sed -i -e 1d build/lib/google/protobuf/descriptor_pb2.py
-popd
-%endif
-
-%if %{with python2}
-pushd python2
-%{__python2} ./setup.py build
+python ./setup.py build
 sed -i -e 1d build/lib/google/protobuf/descriptor_pb2.py
 popd
 %endif
@@ -275,19 +215,16 @@ find %{buildroot} -type f -name "*.la" -exec rm -f {} \;
 
 %if %{with python}
 pushd python
-%{__python} ./setup.py install --skip-build --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
-popd
-%endif
-%if %{with python2}
-pushd python2
-%{__python2} ./setup.py install --skip-build --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
+python ./setup.py install --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
 popd
 %endif
 install -p -m 644 -D %{SOURCE1} %{buildroot}%{_datadir}/vim/vimfiles/ftdetect/proto.vim
 install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/syntax/proto.vim
 
 %if %{with java}
+pushd java
 %mvn_install
+popd
 %endif
 
 mkdir -p %{buildroot}%{emacs_lispdir}
@@ -322,21 +259,11 @@ install -p -m 0644 %{SOURCE2} %{buildroot}%{emacs_startdir}
 
 %if %{with python}
 %files python
-%dir %{py3_puresitedir}/google
-%{py3_puresitedir}/google/protobuf/
-%{py3_puresitedir}/protobuf-%{version}-py3.?.egg-info/
-%{py3_puresitedir}/protobuf-%{version}-py3.?-nspkg.pth
-%doc python/README.md
-%doc examples/add_person.py examples/list_people.py examples/addressbook.proto
-%endif
-
-%if %{with python2}
-%files python2
-%dir %{py2_puresitedir}/google
-%{py2_puresitedir}/google/protobuf/
-%{py2_puresitedir}/protobuf-%{version}-py2.?.egg-info/
-%{py2_puresitedir}/protobuf-%{version}-py2.?-nspkg.pth
-%doc python2/README.md
+%dir %{python_sitelib}/google
+%{python_sitelib}/google/protobuf/
+%{python_sitelib}/protobuf-%{version}-py2.?.egg-info/
+%{python_sitelib}/protobuf-%{version}-py2.?-nspkg.pth
+%doc python/README.txt
 %doc examples/add_person.py examples/list_people.py examples/addressbook.proto
 %endif
 
@@ -352,21 +279,9 @@ install -p -m 0644 %{SOURCE2} %{buildroot}%{emacs_startdir}
 %{emacs_lispdir}/protobuf-mode.el
 
 %if %{with java}
-%files java -f .mfiles-protobuf-java
+%files java -f java/.mfiles
 %doc examples/AddPerson.java examples/ListPeople.java
-%doc java/README.md
-%doc LICENSE
 
-%files java-util -f .mfiles-protobuf-java-util
-%doc LICENSE
-
-%files javadoc -f .mfiles-javadoc
-%doc LICENSE
-
-%files javanano -f .mfiles-protobuf-javanano
-%doc javanano/README.md
-%doc LICENSE
-
-%files parent -f .mfiles-protobuf-parent
-%doc LICENSE
+%files javadoc
+%{_javadocdir}/%{name}
 %endif
