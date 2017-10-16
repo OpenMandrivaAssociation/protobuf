@@ -1,8 +1,9 @@
 %{?_javapackages_macros:%_javapackages_macros}
 
-%define old_libname %mklibname %{name} 8
-%define old_liblite %mklibname %{name}-lite 8
-%define old_libprotoc %mklibname protoc 8
+%define major 13
+%define old_libname %mklibname %{name} %major
+%define old_liblite %mklibname %{name}-lite %major
+%define old_libprotoc %mklibname protoc %major
 %define old_devname %mklibname %{name} -d
 %define old_statname %mklibname %{name} -d -s
 
@@ -31,8 +32,8 @@ Source0:	https://github.com/google/protobuf/archive/v%{version}.tar.gz
 Source1:	ftdetect-proto.vim
 Source2:	protobuf-init.el
 Source3:	%{name}.rpmlintrc
-Patch0:		protobuf-2.5.0-emacs-24.4.patch
-Patch1:		protobuf-2.5.0-fedora-gtest.patch
+#Patch0:		protobuf-3.2.0-emacs-24.4.patch
+Patch1:		protobuf-3.2.0-gtest.patch
 
 BuildRequires:	automake autoconf libtool pkgconfig zlib-devel
 BuildRequires:	emacs
@@ -169,8 +170,8 @@ This package contains the API documentation for %{name}-java.
 
 %prep
 %setup -q
-%patch0 -p1 -b .emacs
-%if %{with gtest}
+
+%if %{without gtest}
 rm -rf gtest
 %patch1 -p1 -b .gtest
 %endif
