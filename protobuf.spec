@@ -1,5 +1,3 @@
-%{?_javapackages_macros:%_javapackages_macros}
-
 %define major 13
 %define old_libname %mklibname %{name} %major
 %define old_liblite %mklibname %{name}-lite %major
@@ -21,7 +19,7 @@
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
 Version:	3.3.2
-Release:	1
+Release:	2
 Group:		Development/Other
 License:	BSD
 URL:		https://github.com/google/protobuf
@@ -32,7 +30,10 @@ Source3:	%{name}.rpmlintrc
 Patch0:		protobuf-3.2.0-emacs-24.4.patch
 Patch1:		protobuf-3.2.0-gtest.patch
 
-BuildRequires:	automake autoconf libtool pkgconfig zlib-devel
+BuildRequires:	automake
+BuildRequires:	autoconf
+BuildRequires:	libtool 
+BuildRequires:	zlib-devel
 BuildRequires:	emacs
 BuildRequires:	emacs-el >= 24.1
 %if %{with gtest}
@@ -156,7 +157,7 @@ under GNU Emacs. You do not need to install this package to use
 Summary:	Java Protocol Buffers runtime library
 Group:		Development/Java
 BuildRequires:	java-devel >= 1.6
-BuildRequires:	jpackage-utils
+BuildRequires:	javapackages-tools
 BuildRequires:  maven-local
 BuildRequires:  mvn(com.google.code.gson:gson)
 #BuildRequires:  mvn(com.google.truth:truth)
@@ -168,7 +169,7 @@ BuildRequires:  mvn(org.apache.maven.plugins:maven-assembly-plugin)
 BuildRequires:  mvn(org.codehaus.mojo:build-helper-maven-plugin)
 BuildRequires:  mvn(org.easymock:easymock)
 Requires:	java
-Requires:	jpackage-utils
+Requires:	javapackages-tools
 Provides:	mvn(com.google.protobuf:protobuf-java) = %{version}
 Provides:	osgi(com.google.protobuf.java) = %{version}
 
@@ -186,7 +187,7 @@ as well as utilities to work with proto3 well-known types.
 %package javadoc
 Summary:	Javadocs for %{name}-java
 Group:		Development/Java
-Requires:	jpackage-utils
+Requires:	javapackages-tools
 Requires:	%{name}-java = %{EVRD}
 
 %description javadoc
