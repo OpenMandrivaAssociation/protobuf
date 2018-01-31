@@ -9,17 +9,18 @@
 %bcond_without python
 %bcond_without python2
 # Build -java subpackage
-%bcond_without java
+# FIXME re-enable once dependencies are sorted out
+%bcond_with java
 # Don't require gtest
-%bcond_with gtest
+%bcond_without gtest
 
 %global emacs_lispdir %{_datadir}/emacs/site-lisp
 %global emacs_startdir %{_datadir}/emacs/site-lisp/site-start.d
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	3.3.2
-Release:	2
+Version:	3.5.1.1
+Release:	1
 Group:		Development/Other
 License:	BSD
 URL:		https://github.com/google/protobuf
@@ -27,8 +28,6 @@ Source0:	https://github.com/google/protobuf/archive/v%{version}.tar.gz
 Source1:	ftdetect-proto.vim
 Source2:	protobuf-init.el
 Source3:	%{name}.rpmlintrc
-Patch0:		protobuf-3.2.0-emacs-24.4.patch
-Patch1:		protobuf-3.2.0-gtest.patch
 
 BuildRequires:	automake
 BuildRequires:	autoconf
@@ -213,11 +212,6 @@ Protocol Buffer Parent POM.
 
 %prep
 %setup -q
-%patch0 -p1 -b .emacs
-%if %{without gtest}
-rm -rf gtest
-%patch1 -p1 -b .gtest
-%endif
 chmod 644 examples/*
 %if %{with java}
 %pom_remove_parent java/pom.xml
@@ -311,7 +305,7 @@ install -p -m 0644 %{SOURCE2} %{buildroot}%{emacs_startdir}
 %{_libdir}/libprotobuf.so
 %{_libdir}/libprotoc.so
 %{_libdir}/pkgconfig/protobuf.pc
-%doc examples/add_person.cc examples/addressbook.proto examples/list_people.cc examples/Makefile examples/README.txt
+%doc examples/add_person.cc examples/addressbook.proto examples/list_people.cc examples/Makefile
 
 %files lite
 %{_libdir}/libprotobuf-lite.so.*
@@ -325,8 +319,8 @@ install -p -m 0644 %{SOURCE2} %{buildroot}%{emacs_startdir}
 %files python
 %dir %{py3_puresitedir}/google
 %{py3_puresitedir}/google/protobuf/
-%{py3_puresitedir}/protobuf-%{version}-py3.?.egg-info/
-%{py3_puresitedir}/protobuf-%{version}-py3.?-nspkg.pth
+%{py3_puresitedir}/protobuf-*-py3.?.egg-info/
+%{py3_puresitedir}/protobuf-*-py3.?-nspkg.pth
 %doc python/README.md
 %doc examples/add_person.py examples/list_people.py examples/addressbook.proto
 %endif
@@ -335,8 +329,8 @@ install -p -m 0644 %{SOURCE2} %{buildroot}%{emacs_startdir}
 %files python2
 %dir %{py2_puresitedir}/google
 %{py2_puresitedir}/google/protobuf/
-%{py2_puresitedir}/protobuf-%{version}-py2.?.egg-info/
-%{py2_puresitedir}/protobuf-%{version}-py2.?-nspkg.pth
+%{py2_puresitedir}/protobuf-*-py2.?.egg-info/
+%{py2_puresitedir}/protobuf-*-py2.?-nspkg.pth
 %doc python2/README.md
 %doc examples/add_person.py examples/list_people.py examples/addressbook.proto
 %endif
