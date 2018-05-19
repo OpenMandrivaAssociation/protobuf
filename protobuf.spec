@@ -40,6 +40,7 @@ BuildRequires:	libtool
 BuildRequires:	zlib-devel
 BuildRequires:	emacs
 BuildRequires:	emacs-el >= 24.1
+BuildRequires:	python2-pkg-resources
 %if %{with gtest}
 BuildRequires:	gtest-devel
 %endif
