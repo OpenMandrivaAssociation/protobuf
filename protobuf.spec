@@ -28,6 +28,11 @@ Source0:	https://github.com/google/protobuf/archive/v%{version}.tar.gz
 Source1:	ftdetect-proto.vim
 Source2:	protobuf-init.el
 Source3:	%{name}.rpmlintrc
+# FIXME remove when protobuf can be built with system gtest
+# or is updated to gtest 1.8.0 (which should be copied
+# from the gtest-source package)
+Source10:	https://github.com/google/googletest/archive/release-1.7.0.tar.gz
+Source11:	https://github.com/google/googlemock/archive/release-1.7.0.zip
 
 BuildRequires:	automake
 BuildRequires:	autoconf
@@ -211,7 +216,9 @@ Protocol Buffer Parent POM.
 %endif
 
 %prep
-%setup -q
+%setup -q -a 10 -a 11
+mv googlemock-release-1.7.0 gmock
+mv googletest-release-1.7.0 gmock/gtest
 chmod 644 examples/*
 %if %{with java}
 %pom_remove_parent java/pom.xml
