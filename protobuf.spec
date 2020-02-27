@@ -15,6 +15,7 @@
 %bcond_with java
 # Don't require gtest
 %bcond_without gtest
+%bcond_with emacs
 
 %global emacs_lispdir %{_datadir}/emacs/site-lisp
 %global emacs_startdir %{_datadir}/emacs/site-lisp/site-start.d
@@ -35,8 +36,10 @@ BuildRequires:	automake
 BuildRequires:	autoconf
 BuildRequires:	libtool 
 BuildRequires:	zlib-devel
+%if %{with emacs}
 BuildRequires:	emacs
 BuildRequires:	emacs-el >= 24.1
+%endif
 BuildRequires:	python2-pkg-resources
 %if %{with gtest}
 BuildRequires:	gtest-devel
@@ -135,6 +138,7 @@ Group:		Development/Other
 This package contains syntax highlighting for Google Protocol Buffers
 descriptions in Vim editor
 
+%if %{with emacs}
 %package emacs
 Summary:	Emacs mode for Google Protocol Buffers descriptions
 Group:		Development/Other
@@ -152,7 +156,7 @@ Requires:	protobuf-emacs = %{version}
 This package contains the elisp source files for %{name}-emacs
 under GNU Emacs. You do not need to install this package to use
 %{name}-emacs.
-
+%endif
 
 %if %{with java}
 %package java
@@ -261,7 +265,9 @@ popd
 %mvn_build -f -s -- -f java/pom.xml
 %endif
 
+%if %{with emacs}
 emacs -batch -f batch-byte-compile editors/protobuf-mode.el
+%endif
 
 %check
 #make %{?_smp_mflags} check
@@ -288,11 +294,13 @@ install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/synt
 %mvn_install
 %endif
 
+%if %{with emacs}
 mkdir -p %{buildroot}%{emacs_lispdir}
 mkdir -p %{buildroot}%{emacs_startdir}
 install -p -m 0644 editors/protobuf-mode.el %{buildroot}%{emacs_lispdir}
 install -p -m 0644 editors/protobuf-mode.elc %{buildroot}%{emacs_lispdir}
 install -p -m 0644 %{SOURCE2} %{buildroot}%{emacs_startdir}
+%endif
 
 %files
 %{_libdir}/libprotobuf.so.*
@@ -342,12 +350,14 @@ install -p -m 0644 %{SOURCE2} %{buildroot}%{emacs_startdir}
 %{_datadir}/vim/vimfiles/ftdetect/proto.vim
 %{_datadir}/vim/vimfiles/syntax/proto.vim
 
+%if %{with emacs}
 %files emacs
 %{emacs_startdir}/protobuf-init.el
 %{emacs_lispdir}/protobuf-mode.elc
 
 %files emacs-el
 %{emacs_lispdir}/protobuf-mode.el
+%endif
 
 %if %{with java}
 %files java -f .mfiles-protobuf-java
