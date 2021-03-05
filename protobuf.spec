@@ -1,52 +1,72 @@
+%define gtest_version 1.7.0
 %global _disable_rebuild_configure 1
 
-%define major 13
-%define old_libname %mklibname %{name} %major
-%define old_liblite %mklibname %{name}-lite %major
-%define old_libprotoc %mklibname protoc %major
-%define old_devname %mklibname %{name} -d
-%define old_statname %mklibname %{name} -d -s
+# w/a problems with GCC 10
+# https://lists.altlinux.org/pipermail/devel/2020-December/212848.html
+%global optflags %{optflags} -fcommon
 
-# Build -python subpackages
+# Major
+%define major 26
+
+# Library names
+%define libname		%mklibname %{name} %{major}
+%define liblite		%mklibname %{name}-lite %{major}
+%define libcompiler	%mklibname protoc %{major}
+%define devname		%mklibname %{name} -d
+%define sdevname	%mklibname %{name} -d -s
+
 %bcond_without python
-%bcond_without python2
-# Build -java subpackage
-# FIXME re-enable once dependencies are sorted out
-%bcond_with java
-# Don't require gtest
-%bcond_without gtest
-%bcond_with emacs
 
-%global emacs_lispdir %{_datadir}/emacs/site-lisp
-%global emacs_startdir %{_datadir}/emacs/site-lisp/site-start.d
+# Java stack is not supported on x86_32
+%ifarch %{ix86}
+%bcond_with java
+%else
+%bcond_with java
+%endif
+
+%bcond_with gtest
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
 Version:	3.15.4
 Release:	1
-Group:		Development/Other
 License:	BSD
-URL:		https://github.com/google/protobuf
-Source0:	https://github.com/google/protobuf/archive/v%{version}.tar.gz
+Group:		Development/Other
+Url:		https://github.com/google/protobuf
+Source0:	https://github.com/google/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	ftdetect-proto.vim
-Source2:	protobuf-init.el
-Source3:	%{name}.rpmlintrc
-
-BuildRequires:	automake
-BuildRequires:	autoconf
-BuildRequires:	libtool 
-BuildRequires:	zlib-devel
-%if %{with emacs}
-BuildRequires:	emacs
-BuildRequires:	emacs-el >= 24.1
-%endif
-BuildRequires:	python2-pkg-resources
+# For tests
+Source3:	https://github.com/google/googlemock/archive/release-%{gtest_version}.tar.gz?/googlemock-%{gtest_version}.tar.gz
+Source4:	https://github.com/google/googletest/archive/release-%{gtest_version}.tar.gz?/googletest-%{gtest_version}.tar.gz
+BuildRequires:	pkgconfig(zlib)
 %if %{with gtest}
 BuildRequires:	gtest-devel
 %endif
-%rename %{old_libname}
-%rename %{old_liblite}
-%rename %{old_libprotoc}
+%if %{with python}
+BuildRequires:	pkgconfig(python)
+BuildRequires:	python-setuptools
+%endif
+%if %{with java}
+BuildRequires:	java-devel >= 1.6
+BuildRequires:	jpackage-utils
+BuildRequires:  maven-local
+BuildRequires:  mvn(com.google.code.gson:gson)
+BuildRequires:  mvn(com.google.guava:guava)
+BuildRequires:  mvn(junit:junit)
+BuildRequires:  mvn(org.easymock:easymock)
+BuildRequires:  mvn(org.apache.felix:maven-bundle-plugin)
+BuildRequires:  mvn(org.apache.maven.plugins:maven-antrun-plugin)
+BuildRequires:  mvn(org.apache.maven.plugins:maven-source-plugin)
+BuildRequires:  mvn(org.codehaus.mojo:build-helper-maven-plugin)
+BuildRequires:	maven-compiler-plugin
+BuildRequires:	maven-install-plugin
+BuildRequires:	maven-jar-plugin
+BuildRequires:	maven-javadoc-plugin
+BuildRequires:	maven-release-plugin
+BuildRequires:	maven-resources-plugin
+BuildRequires:	maven-surefire-plugin
+BuildRequires:	maven-antrun-plugin
+%endif
 
 %description
 Protocol Buffers are a way of encoding structured data in an efficient
@@ -54,133 +74,194 @@ yet extensible format. Google uses Protocol Buffers for almost all of
 its internal RPC protocols and file formats.
 
 Protocol buffers are a flexible, efficient, automated mechanism for
-serializing structured data – think XML, but smaller, faster, and
+serializing structured data - think XML, but smaller, faster, and
 simpler. You define how you want your data to be structured once, then
 you can use special generated source code to easily write and read
 your structured data to and from a variety of data streams and using a
 variety of languages. You can even update your data structure without
 breaking deployed programs that are compiled against the "old" format.
 
+#----------------------------------------------------------------------------
+
+%package -n %{libname}
+Summary:	Runtime library for %{name}
+Group:		System/Libraries
+
+%description -n %{libname}
+Protocol Buffers are a way of encoding structured data in an efficient
+yet extensible format. Google uses Protocol Buffers for almost all of
+its internal RPC protocols and file formats.
+
+Protocol buffers are a flexible, efficient, automated mechanism for
+serializing structured data - think XML, but smaller, faster, and
+simpler. You define how you want your data to be structured once, then
+you can use special generated source code to easily write and read
+your structured data to and from a variety of data streams and using a
+variety of languages. You can even update your data structure without
+breaking deployed programs that are compiled against the "old" format.
+
+This package contains the shared %{name} library.
+
+%files -n %{libname}
+%doc CHANGES.txt CONTRIBUTORS.txt LICENSE README.md
+%{_libdir}/lib%{name}.so.%{major}*
+
+#----------------------------------------------------------------------------
+
+%package -n %{liblite}
+Summary:	Protocol Buffers lite version
+Group:		Development/Other
+
+%description -n %{liblite}
+This package contains a compiled with "optimize_for = LITE_RUNTIME"
+version of Google's Protocol Buffers library.
+
+The "optimize_for = LITE_RUNTIME" option causes the compiler to
+generate code which only depends libprotobuf-lite, which is much
+smaller than libprotobuf but lacks descriptors, reflection, and some
+other features.
+
+%files -n %{liblite}
+%doc LICENSE README.md
+%{_libdir}/lib%{name}-lite.so.%{major}*
+
+#----------------------------------------------------------------------------
+
 %package compiler
 Summary:	Protocol Buffers compiler
-Requires:	%{name} = %{EVRD}
 Group:		Development/Other
+Recommends:	%{libname}
+Recommends:	%{liblite}
 
 %description compiler
 This package contains Protocol Buffers compiler for all programming
 languages.
 
-%package devel
+%files compiler
+%doc LICENSE README.md
+%{_bindir}/protoc
+
+#----------------------------------------------------------------------------
+
+%package -n %{libcompiler}
+Summary:	Protocol Buffers compiler shared library
+Group:		System/Libraries
+
+%description -n %{libcompiler}
+This package contains the Protocol Buffers compiler shared library.
+
+%files -n %{libcompiler}
+%{_libdir}/libprotoc.so.%{major}*
+
+#----------------------------------------------------------------------------
+
+%package -n %{devname}
 Summary:	Protocol Buffers C++ headers and libraries
 Group:		Development/Other
-Requires:	%{name} = %{EVRD}
+Requires:	%{libname} = %{EVRD}
+Requires:	%{liblite} = %{EVRD}
 Requires:	%{name}-compiler = %{EVRD}
-Requires:	pkgconfig
-%rename %{old_devname}
+Provides:	%{name}-devel = %{EVRD}
 
-%description devel
+%description -n %{devname}
 This package contains Protocol Buffers compiler for all languages and
-C++ headers and libraries
+C++ headers and libraries.
 
-%package lite
-Summary:	Protocol Buffers LITE_RUNTIME libraries
+%files -n %{devname}
+%doc examples/add_person.cc examples/addressbook.proto
+%doc examples/list_people.cc examples/Makefile examples/README.md
+%dir %{_includedir}/google
+%{_includedir}/google/%{name}/
+%{_libdir}/lib%{name}.so
+%{_libdir}/lib%{name}-lite.so
+%{_libdir}/libprotoc.so
+%{_libdir}/pkgconfig/%{name}.pc
+%{_libdir}/pkgconfig/%{name}-lite.pc
+
+#----------------------------------------------------------------------------
+
+%package -n %{sdevname}
+Summary:	Static development files for %{name}
 Group:		Development/Other
+Requires:	%{libname} = %{EVRD}
+Requires:	%{liblite} = %{EVRD}
+Provides:	%{name}-static-devel = %{EVRD}
 
-%description lite
-Protocol Buffers built with optimize_for = LITE_RUNTIME.
+%description -n %{sdevname}
+This package contains static libraries for Protocol Buffers.
 
-The "optimize_for = LITE_RUNTIME" option causes the compiler to generate code
-which only depends libprotobuf-lite, which is much smaller than libprotobuf but
-lacks descriptors, reflection, and some other features.
+%files -n %{sdevname}
+%{_libdir}/lib%{name}.a
+%{_libdir}/lib%{name}-lite.a
+%{_libdir}/libprotoc.a
 
-%package lite-devel
-Summary:	Protocol Buffers LITE_RUNTIME development libraries
-Requires:	%{name}-devel = %{EVRD}
-Requires:	%{name}-lite = %{EVRD}
-Group:		Development/Other
-
-%description lite-devel
-This package contains development libraries built with
-optimize_for = LITE_RUNTIME.
-
-The "optimize_for = LITE_RUNTIME" option causes the compiler to generate code
-which only depends libprotobuf-lite, which is much smaller than libprotobuf but
-lacks descriptors, reflection, and some other features.
+#----------------------------------------------------------------------------
 
 %if %{with python}
-%package python
-Summary:	Python bindings for Google Protocol Buffers
+%package -n python-%{name}
+Summary:	Python 3 bindings for Google Protocol Buffers
 Group:		Development/Python
-BuildRequires:	python-devel
-BuildRequires:	python-setuptools
+Requires:	%{name}-compiler = %{EVRD}
 
-%description python
-This package contains Python libraries for Google Protocol Buffers
+%description -n python-%{name}
+This package contains Python 3 bindings for Google Protocol Buffers.
+
+%files -n python-%{name}
+%doc python/README.md
+%doc examples/add_person.py examples/list_people.py examples/addressbook.proto
+%dir %{python_sitelib}/google
+%{python_sitelib}/google/%{name}/
+%{python_sitelib}/%{name}-%{version}-py%{python_version}.egg-info/
+%{python_sitelib}/%{name}-%{version}-py%{python_version}-nspkg.pth
 %endif
 
-%if %{with python2}
-%package python2
-Summary:	Python2 bindings for Google Protocol Buffers
-Group:		Development/Python
-BuildRequires:	python2-devel
-BuildRequires:	python2-setuptools
-
-%description python2
-This package contains Python2 libraries for Google Protocol Buffers
-%endif
+#----------------------------------------------------------------------------
 
 %package vim
-Summary:	Vim syntax highlighting for Google Protocol Buffers descriptions
-Requires:	vim-enhanced
+Summary:	Vim syntax highlighting for Google Protocol Buffers
 Group:		Development/Other
+Requires:	vim-enhanced
 
 %description vim
 This package contains syntax highlighting for Google Protocol Buffers
-descriptions in Vim editor
+descriptions in Vim editor.
 
-%if %{with emacs}
-%package emacs
-Summary:	Emacs mode for Google Protocol Buffers descriptions
-Group:		Development/Other
+%files vim
+%{_datadir}/vim/vimfiles/ftdetect/proto.vim
+%{_datadir}/vim/vimfiles/syntax/proto.vim
 
-%description emacs
-This package contains syntax highlighting for Google Protocol Buffers
-descriptions in the Emacs editor.
-
-%package emacs-el
-Summary:	Elisp source files for Google protobuf Emacs mode
-Group:		Development/Other
-Requires:	protobuf-emacs = %{version}
-
-%description emacs-el
-This package contains the elisp source files for %{name}-emacs
-under GNU Emacs. You do not need to install this package to use
-%{name}-emacs.
-%endif
+#----------------------------------------------------------------------------
 
 %if %{with java}
 %package java
 Summary:	Java Protocol Buffers runtime library
 Group:		Development/Java
-BuildRequires:	java-devel >= 1.6
-BuildRequires:	javapackages-tools
-BuildRequires:  maven-local
-BuildRequires:  mvn(com.google.code.gson:gson)
-#BuildRequires:  mvn(com.google.truth:truth)
-BuildRequires:  mvn(com.google.guava:guava)
-BuildRequires:  mvn(junit:junit)
-BuildRequires:  mvn(org.apache.felix:maven-bundle-plugin)
-BuildRequires:  mvn(org.apache.maven.plugins:maven-antrun-plugin)
-BuildRequires:  mvn(org.apache.maven.plugins:maven-assembly-plugin)
-BuildRequires:  mvn(org.codehaus.mojo:build-helper-maven-plugin)
-BuildRequires:  mvn(org.easymock:easymock)
 Requires:	java
-Requires:	javapackages-tools
-Provides:	mvn(com.google.protobuf:protobuf-java) = %{version}
-Provides:	osgi(com.google.protobuf.java) = %{version}
+Requires:	jpackage-utils
+Requires(post,postun):	jpackage-utils
+Requires:	%{name}-compiler = %{EVRD}
 
 %description java
 This package contains Java Protocol Buffers runtime library.
+
+%files java -f .mfiles-protobuf-java
+%doc examples/AddPerson.java examples/ListPeople.java
+%doc java/README.md
+%doc LICENSE
+
+#----------------------------------------------------------------------------
+
+%package javalite
+Summary:        Java Protocol Buffers lite runtime library
+BuildArch:      noarch
+
+%description javalite
+This package contains Java Protocol Buffers lite runtime library.
+
+%files javalite -f .mfiles-protobuf-javalite
+%doc LICENSE
+
+#----------------------------------------------------------------------------
 
 %package java-util
 Summary:        Utilities for Protocol Buffers
@@ -190,23 +271,21 @@ BuildArch:      noarch
 Utilities to work with protos. It contains JSON support
 as well as utilities to work with proto3 well-known types.
 
+%files java-util -f .mfiles-protobuf-java-util
+
+#----------------------------------------------------------------------------
+
 %package javadoc
-Summary:	Javadocs for %{name}-java
-Group:		Development/Java
-Requires:	javapackages-tools
-Requires:	%{name}-java = %{EVRD}
+Summary:        Javadoc for %{name}-java
+BuildArch:      noarch
 
 %description javadoc
 This package contains the API documentation for %{name}-java.
 
-%package javanano
-Summary:        Protocol Buffer JavaNano API
-BuildArch:      noarch
+%files javadoc -f .mfiles-javadoc
+%doc LICENSE
 
-%description javanano
-JavaNano is a special code generator and runtime
-library designed specially for resource-restricted
-systems, like Android.
+#----------------------------------------------------------------------------
 
 %package parent
 Summary:        Protocol Buffer Parent POM
@@ -215,78 +294,81 @@ BuildArch:      noarch
 %description parent
 Protocol Buffer Parent POM.
 
+%files parent -f .mfiles-protobuf-parent
+%doc LICENSE
+
+#----------------------------------------------------------------------------
+
+
+%package bom
+Summary:        Protocol Buffer BOM POM
+BuildArch:      noarch
+
+%description bom
+Protocol Buffer BOM POM.
+
+%files bom -f .mfiles-protobuf-bom
+%doc LICENSE
+
 %endif
+#----------------------------------------------------------------------------
 
 %prep
-%setup -q
-chmod 644 examples/*
+%setup -q -a3 -a4
+
 %if %{with java}
-%pom_remove_parent java/pom.xml
-%pom_remove_dep -r org.easymock:easymockclassextension java/
-# Remove class using easymockclassextension
-rm -f java/core/src/test/java/com/google/protobuf/ServiceTest.java
+%pom_remove_dep org.easymock:easymockclassextension java/pom.xml java/core/pom.xml java/lite/pom.xml java/util/pom.xml
+%pom_remove_dep com.google.truth:truth java/pom.xml java/core/pom.xml java/lite/pom.xml java/util/pom.xml
+%pom_remove_dep com.google.errorprone:error_prone_annotations java/util/pom.xml
+%pom_remove_dep com.google.guava:guava-testlib java/pom.xml java/util/pom.xml
+# These use easymockclassextension
+rm java/core/src/test/java/com/google/protobuf/ServiceTest.java
+# These use truth or error_prone_annotations or guava-testlib
+rm java/core/src/test/java/com/google/protobuf/LiteralByteStringTest.java
+rm java/core/src/test/java/com/google/protobuf/BoundedByteStringTest.java
+rm java/core/src/test/java/com/google/protobuf/RopeByteStringTest.java
+rm java/core/src/test/java/com/google/protobuf/RopeByteStringSubstringTest.java
+rm -r java/util/src/test/java/com/google/protobuf/util
+rm -r java/util/src/main/java/com/google/protobuf/util
 
-# used by https://github.com/googlei18n/libphonenumber
-%pom_xpath_inject "pom:project/pom:modules" "<module>../javanano</module>" java/pom.xml
-%pom_remove_parent javanano/pom.xml
-%pom_remove_dep org.easymock:easymockclassextension javanano/pom.xml
+# Make OSGi dependency on sun.misc package optional
+%pom_xpath_inject "pom:configuration/pom:instructions" "<Import-Package>sun.misc;resolution:=optional,*</Import-Package>" java/core
 
+# Backward compatibility symlink
+%mvn_file :protobuf-java:jar: %{name}/%{name}-java %{name}
 %endif
 
-%if %{with python2}
-cp -ra python python2
-%endif
+mv googlemock-release-%{gtest_version} gmock
+mv googletest-release-%{gtest_version} gmock/gtest
+chmod 644 examples/*
 
 %build
-iconv -f iso8859-1 -t utf-8 CONTRIBUTORS.txt > CONTRIBUTORS.txt.utf8
-mv CONTRIBUTORS.txt.utf8 CONTRIBUTORS.txt
 export PTHREAD_LIBS="-lpthread"
 ./autogen.sh
-%configure --disable-static
-
+%configure --enable-static
+automake --add-missing
 %make
 
 %if %{with python}
 pushd python
-%{__python} ./setup.py build
-sed -i -e 1d build/lib/google/protobuf/descriptor_pb2.py
-popd
-%endif
-
-%if %{with python2}
-pushd python2
-%{__python2} ./setup.py build
+%__python ./setup.py build
 sed -i -e 1d build/lib/google/protobuf/descriptor_pb2.py
 popd
 %endif
 
 %if %{with java}
-# Tests currently disabled because of mvn(com.google.truth:truth) dep -- needs to be packaged/updated first
-%mvn_build -f -s -- -f java/pom.xml
+%mvn_build -s -- -f java/pom.xml
 %endif
-
-%if %{with emacs}
-emacs -batch -f batch-byte-compile editors/protobuf-mode.el
-%endif
-
-%check
-#make %{?_smp_mflags} check
 
 %install
-rm -rf %{buildroot}
-%makeinstall_std DESTDIR=%{buildroot} STRIPBINARIES=no INSTALL="%{__install} -p" CPPROG="cp -p"
-find %{buildroot} -type f -name "*.la" -exec rm -f {} \;
+%make_install
 
 %if %{with python}
 pushd python
-%{__python} ./setup.py install --skip-build --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
+%__python ./setup.py install --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
 popd
 %endif
-%if %{with python2}
-pushd python2
-%{__python2} ./setup.py install --skip-build --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
-popd
-%endif
+
 install -p -m 644 -D %{SOURCE1} %{buildroot}%{_datadir}/vim/vimfiles/ftdetect/proto.vim
 install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/syntax/proto.vim
 
@@ -294,87 +376,7 @@ install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/synt
 %mvn_install
 %endif
 
-%if %{with emacs}
-mkdir -p %{buildroot}%{emacs_lispdir}
-mkdir -p %{buildroot}%{emacs_startdir}
-install -p -m 0644 editors/protobuf-mode.el %{buildroot}%{emacs_lispdir}
-install -p -m 0644 editors/protobuf-mode.elc %{buildroot}%{emacs_lispdir}
-install -p -m 0644 %{SOURCE2} %{buildroot}%{emacs_startdir}
-%endif
+%check
+# Tests are broken with gcc 4.7
+#make check
 
-%files
-%{_libdir}/libprotobuf.so.*
-%doc CHANGES.txt CONTRIBUTORS.txt
-
-%files compiler
-%{_bindir}/protoc
-%{_libdir}/libprotoc.so.*
-
-%files devel
-%dir %{_includedir}/google
-%{_includedir}/google/protobuf/
-%{_libdir}/libprotobuf.so
-%{_libdir}/libprotoc.so
-%{_libdir}/pkgconfig/protobuf.pc
-%doc examples/add_person.cc examples/addressbook.proto examples/list_people.cc examples/Makefile
-
-%files lite
-%{_libdir}/libprotobuf-lite.so.*
-
-%files lite-devel
-%{_libdir}/libprotobuf-lite.so
-%{_libdir}/pkgconfig/protobuf-lite.pc
-
-
-%if %{with python}
-%files python
-%dir %{py3_puresitedir}/google
-%{py3_puresitedir}/google/protobuf/
-%{py3_puresitedir}/protobuf-*-py3.?.egg-info/
-%{py3_puresitedir}/protobuf-*-py3.?-nspkg.pth
-%doc python/README.md
-%doc examples/add_person.py examples/list_people.py examples/addressbook.proto
-%endif
-
-%if %{with python2}
-%files python2
-%dir %{py2_puresitedir}/google
-%{py2_puresitedir}/google/protobuf/
-%{py2_puresitedir}/protobuf-*-py2.?.egg-info/
-%{py2_puresitedir}/protobuf-*-py2.?-nspkg.pth
-%doc python2/README.md
-%doc examples/add_person.py examples/list_people.py examples/addressbook.proto
-%endif
-
-%files vim
-%{_datadir}/vim/vimfiles/ftdetect/proto.vim
-%{_datadir}/vim/vimfiles/syntax/proto.vim
-
-%if %{with emacs}
-%files emacs
-%{emacs_startdir}/protobuf-init.el
-%{emacs_lispdir}/protobuf-mode.elc
-
-%files emacs-el
-%{emacs_lispdir}/protobuf-mode.el
-%endif
-
-%if %{with java}
-%files java -f .mfiles-protobuf-java
-%doc examples/AddPerson.java examples/ListPeople.java
-%doc java/README.md
-%doc LICENSE
-
-%files java-util -f .mfiles-protobuf-java-util
-%doc LICENSE
-
-%files javadoc -f .mfiles-javadoc
-%doc LICENSE
-
-%files javanano -f .mfiles-protobuf-javanano
-%doc javanano/README.md
-%doc LICENSE
-
-%files parent -f .mfiles-protobuf-parent
-%doc LICENSE
-%endif
