@@ -1,10 +1,6 @@
 %define gtest_version 1.7.0
 %global _disable_rebuild_configure 1
 
-# w/a problems with GCC 10
-# https://lists.altlinux.org/pipermail/devel/2020-December/212848.html
-%global optflags %{optflags} -fcommon
-
 # Major
 %define major 26
 
@@ -28,8 +24,8 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	3.15.4
-Release:	2
+Version:	3.15.6
+Release:	1
 License:	BSD
 Group:		Development/Other
 Url:		https://github.com/google/protobuf
@@ -376,7 +372,7 @@ install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/synt
 %mvn_install
 %endif
 
-%check
-# Tests are broken with gcc 4.7
-#make check
+#check
+# Tests are looking for yet another googletest setup in third_party/googletest
+#make_build check
 

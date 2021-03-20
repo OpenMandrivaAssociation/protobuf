@@ -1,2 +1,4 @@
 sources:
-  v3.15.4.tar.gz: 9498a42ae18f4e42fce2f7afbc3705c16975fcca
+  googlemock-1.7.0.tar.gz: 2dbd904c1c0eadbe7250854fa8a2b8695a930e34
+  googletest-1.7.0.tar.gz: d7aa4b8536f3a007b480cf016be8a4333dbf4768
+  protobuf-3.15.6.tar.gz: 4d3f89477b3138d329c150e23c48af76df089996
