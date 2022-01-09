@@ -2,7 +2,7 @@
 %global _disable_rebuild_configure 1
 
 # Major
-%define major 26
+%define major 30
 
 # Library names
 %define libname		%mklibname %{name} %{major}
@@ -24,7 +24,7 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	3.15.8
+Version:	3.19.2
 Release:	1
 License:	BSD
 Group:		Development/Other
