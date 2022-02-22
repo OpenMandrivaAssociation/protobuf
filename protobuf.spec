@@ -24,12 +24,12 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	3.19.3
+Version:	3.19.4
 Release:	1
 License:	BSD
 Group:		Development/Other
-Url:		https://github.com/google/protobuf
-Source0:	https://github.com/google/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
+Url:		https://github.com/protocolbuffers/protobuf
+Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	ftdetect-proto.vim
 # For tests
 Source3:	https://github.com/google/googlemock/archive/release-%{gtest_version}.tar.gz?/googlemock-%{gtest_version}.tar.gz
