@@ -207,8 +207,8 @@ This package contains Python 3 bindings for Google Protocol Buffers.
 %doc examples/add_person.py examples/list_people.py examples/addressbook.proto
 %dir %{python_sitelib}/google
 %{python_sitelib}/google/%{name}/
-%{python_sitelib}/%{name}-%{version}-py%{python_version}.egg-info/
-%{python_sitelib}/%{name}-%{version}-py%{python_version}-nspkg.pth
+%{python_sitelib}/%{name}-*-py%{python_version}.egg-info/
+%{python_sitelib}/%{name}-*-py%{python_version}-nspkg.pth
 %endif
 
 #----------------------------------------------------------------------------
