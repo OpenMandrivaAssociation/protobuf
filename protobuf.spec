@@ -336,7 +336,9 @@ rm -r java/util/src/main/java/com/google/protobuf/util
 
 mv googlemock-release-%{gtest_version} gmock
 mv googletest-release-%{gtest_version} gmock/gtest
-chmod 644 examples/*
+
+# Avoid dependencies
+chmod 644 examples/*.py
 
 %build
 export PTHREAD_LIBS="-lpthread"
