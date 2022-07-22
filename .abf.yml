@@ -1,4 +1,4 @@
 sources:
   googlemock-1.7.0.tar.gz: 2dbd904c1c0eadbe7250854fa8a2b8695a930e34
   googletest-1.7.0.tar.gz: d7aa4b8536f3a007b480cf016be8a4333dbf4768
-  protobuf-21.2.tar.gz: c856a984f2096bb12df35cc85c6ba9a3df78539a
+  protobuf-21.3.tar.gz: ee045719d0588ee47f893e27cc6181815a69d3cc
