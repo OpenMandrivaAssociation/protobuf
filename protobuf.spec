@@ -34,7 +34,7 @@ Source1:	ftdetect-proto.vim
 # For tests
 Source3:	https://github.com/google/googlemock/archive/release-%{gtest_version}.tar.gz?/googlemock-%{gtest_version}.tar.gz
 Source4:	https://github.com/google/googletest/archive/release-%{gtest_version}.tar.gz?/googletest-%{gtest_version}.tar.gz
-Patch0:		protobuf-22.1-workaround-python-failure.patch
+#Patch0:		protobuf-22.1-workaround-python-failure.patch
 BuildRequires:	cmake ninja
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	cmake(absl)
@@ -379,9 +379,10 @@ export CMAKE_BUILD_DIR=build-static
 %ninja_build -C build
 %ninja_build -C build-static
 
-# The python bindings don't seem to like
-# out-of-tree builds of the C/C++ code...
-ln -s build-static/protoc src/
+# Use the just built protoc instead of any
+# system version for python and/or java bindings
+export PROTOC=$(pwd)/build-static/protoc
+
 %if %{with python}
 pushd python
 %__python ./setup.py build
