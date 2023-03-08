@@ -379,6 +379,9 @@ export CMAKE_BUILD_DIR=build-static
 %ninja_build -C build
 %ninja_build -C build-static
 
+# The python bindings don't seem to like
+# out-of-tree builds of the C/C++ code...
+ln -s build-static/protoc src/
 %if %{with python}
 pushd python
 %__python ./setup.py build
