@@ -37,6 +37,7 @@ Source4:	https://github.com/google/googletest/archive/release-%{gtest_version}.t
 Patch0:		protobuf-22.1-workaround-python-failure.patch
 BuildRequires:	cmake ninja
 BuildRequires:	pkgconfig(zlib)
+BuildRequires:	cmake(absl)
 %if %{with gtest}
 BuildRequires:	gtest-devel
 %endif
