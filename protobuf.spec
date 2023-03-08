@@ -2,7 +2,7 @@
 %global _disable_rebuild_configure 1
 
 # Major
-%define major 32
+%define major 22
 
 # Library names
 %define libname		%mklibname %{name}
@@ -24,7 +24,7 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	21.12
+Version:	22.1
 Release:	1
 License:	BSD
 Group:		Development/Other
@@ -34,6 +34,8 @@ Source1:	ftdetect-proto.vim
 # For tests
 Source3:	https://github.com/google/googlemock/archive/release-%{gtest_version}.tar.gz?/googlemock-%{gtest_version}.tar.gz
 Source4:	https://github.com/google/googletest/archive/release-%{gtest_version}.tar.gz?/googletest-%{gtest_version}.tar.gz
+Patch0:		protobuf-22.1-workaround-python-failure.patch
+BuildRequires:	cmake ninja
 BuildRequires:	pkgconfig(zlib)
 %if %{with gtest}
 BuildRequires:	gtest-devel
@@ -99,7 +101,7 @@ breaking deployed programs that are compiled against the "old" format.
 This package contains the shared %{name} library.
 
 %files -n %{libname}
-%doc CHANGES.txt CONTRIBUTORS.txt LICENSE README.md
+%doc CONTRIBUTORS.txt LICENSE README.md
 %{_libdir}/lib%{name}.so.%{major}*
 
 #----------------------------------------------------------------------------
@@ -136,6 +138,7 @@ languages.
 %files compiler
 %doc LICENSE README.md
 %{_bindir}/protoc
+%{_bindir}/protoc-%{version}*
 
 #----------------------------------------------------------------------------
 
@@ -173,6 +176,11 @@ C++ headers and libraries.
 %{_libdir}/libprotoc.so
 %{_libdir}/pkgconfig/%{name}.pc
 %{_libdir}/pkgconfig/%{name}-lite.pc
+%{_includedir}/utf8_*.h
+%{_libdir}/cmake/protobuf
+%{_libdir}/cmake/utf8_range
+%{_libdir}/libutf8_range.a
+%{_libdir}/libutf8_validity.a
 
 #----------------------------------------------------------------------------
 
@@ -310,7 +318,9 @@ Protocol Buffer BOM POM.
 #----------------------------------------------------------------------------
 
 %prep
-%setup -q -a3 -a4
+%autosetup -p1
+tar xf %{S:3}
+tar xf %{S:4}
 
 %if %{with java}
 %pom_remove_dep org.easymock:easymockclassextension java/pom.xml java/core/pom.xml java/lite/pom.xml java/util/pom.xml
@@ -340,12 +350,33 @@ mv googletest-release-%{gtest_version} gmock/gtest
 # Avoid dependencies
 chmod 644 examples/*.py
 
+# FIXME we currently disable BUILD_TESTS because of its
+# dependency on absl::scoped_mock_log, which doesn't exist
+# in any released version of abseil-cpp. Enable tests on
+# next absl upstream release.
+%cmake \
+	-Dprotobuf_BUILD_EXAMPLES:BOOL=ON \
+	-Dprotobuf_BUILD_LIBPROTOC:BOOL=ON \
+	-Dprotobuf_BUILD_SHARED_LIBS:BOOL=ON \
+	-Dprotobuf_USE_EXTERNAL_GTEST:BOOL=ON \
+	-Dprotobuf_ABSL_PROVIDER=package \
+	-Dprotobuf_BUILD_TESTS:BOOL=OFF \
+	-G Ninja
+
+cd ..
+export CMAKE_BUILD_DIR=build-static
+%cmake \
+	-Dprotobuf_BUILD_EXAMPLES:BOOL=ON \
+	-Dprotobuf_BUILD_LIBPROTOC:BOOL=ON \
+	-Dprotobuf_BUILD_SHARED_LIBS:BOOL=OFF \
+	-Dprotobuf_USE_EXTERNAL_GTEST:BOOL=ON \
+	-Dprotobuf_ABSL_PROVIDER=package \
+	-Dprotobuf_BUILD_TESTS:BOOL=OFF \
+	-G Ninja
+
 %build
-export PTHREAD_LIBS="-lpthread"
-./autogen.sh
-%configure --enable-static
-automake --add-missing
-%make
+%ninja_build -C build
+%ninja_build -C build-static
 
 %if %{with python}
 pushd python
@@ -359,7 +390,8 @@ popd
 %endif
 
 %install
-%make_install
+%ninja_install -C build-static
+%ninja_install -C build
 
 %if %{with python}
 pushd python
@@ -377,4 +409,3 @@ install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/synt
 #check
 # Tests are looking for yet another googletest setup in third_party/googletest
 #make_build check
-
