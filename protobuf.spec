@@ -25,16 +25,12 @@
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
 Version:	22.1
-Release:	1
+Release:	2
 License:	BSD
 Group:		Development/Other
 Url:		https://github.com/protocolbuffers/protobuf
 Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	ftdetect-proto.vim
-# For tests
-Source3:	https://github.com/google/googlemock/archive/release-%{gtest_version}.tar.gz?/googlemock-%{gtest_version}.tar.gz
-Source4:	https://github.com/google/googletest/archive/release-%{gtest_version}.tar.gz?/googletest-%{gtest_version}.tar.gz
-#Patch0:		protobuf-22.1-workaround-python-failure.patch
 BuildRequires:	cmake ninja
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	cmake(absl)
@@ -161,6 +157,8 @@ Group:		Development/Other
 Requires:	%{libname} = %{EVRD}
 Requires:	%{liblite} = %{EVRD}
 Requires:	%{name}-compiler = %{EVRD}
+# protobuf is heavily dependent on absl these days
+Requires:	cmake(absl)
 Provides:	%{name}-devel = %{EVRD}
 
 %description -n %{devname}
@@ -320,8 +318,6 @@ Protocol Buffer BOM POM.
 
 %prep
 %autosetup -p1
-tar xf %{S:3}
-tar xf %{S:4}
 
 %if %{with java}
 %pom_remove_dep org.easymock:easymockclassextension java/pom.xml java/core/pom.xml java/lite/pom.xml java/util/pom.xml
@@ -344,9 +340,6 @@ rm -r java/util/src/main/java/com/google/protobuf/util
 # Backward compatibility symlink
 %mvn_file :protobuf-java:jar: %{name}/%{name}-java %{name}
 %endif
-
-mv googlemock-release-%{gtest_version} gmock
-mv googletest-release-%{gtest_version} gmock/gtest
 
 # Avoid dependencies
 chmod 644 examples/*.py
