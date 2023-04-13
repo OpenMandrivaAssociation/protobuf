@@ -1,0 +1,11 @@
+diff -up protobuf-22.2/src/google/protobuf/port.h.omv~ protobuf-22.2/src/google/protobuf/port.h
+--- protobuf-22.2/src/google/protobuf/port.h.omv~	2023-04-13 03:00:23.589294799 +0200
++++ protobuf-22.2/src/google/protobuf/port.h	2023-04-13 03:00:30.860360463 +0200
+@@ -38,6 +38,7 @@
+ 
+ #include <cassert>
+ #include <cstddef>
++#include <cstdint>
+ #include <new>
+ #include <string>
+ #include <type_traits>

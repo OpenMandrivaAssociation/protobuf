@@ -31,6 +31,7 @@ Group:		Development/Other
 Url:		https://github.com/protocolbuffers/protobuf
 Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	ftdetect-proto.vim
+Patch0:		protobuf-22.2-libstdc++13.patch
 BuildRequires:	cmake ninja
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	cmake(absl)
