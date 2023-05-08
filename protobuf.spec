@@ -5,11 +5,11 @@
 %define major 22
 
 # Library names
-%define libname		%mklibname %{name}
-%define liblite		%mklibname %{name}-lite
-%define libcompiler	%mklibname protoc
-%define devname		%mklibname %{name} -d
-%define sdevname	%mklibname %{name} -d -s
+%define libname %mklibname %{name}
+%define liblite %mklibname %{name}-lite
+%define libcompiler %mklibname protoc
+%define devname %mklibname %{name} -d
+%define sdevname %mklibname %{name} -d -s
 
 %bcond_without python
 
@@ -25,7 +25,7 @@
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
 Version:	22.4
-Release:	1
+Release:	2
 License:	BSD
 Group:		Development/Other
 Url:		https://github.com/protocolbuffers/protobuf
@@ -33,7 +33,8 @@ Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}
 Source1:	ftdetect-proto.vim
 Patch0:		protobuf-22.2-libstdc++13.patch
 Patch1:		protobuf-22.4-soname.patch
-BuildRequires:	cmake ninja
+BuildRequires:	cmake
+BuildRequires:	ninja
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	cmake(absl)
 %if %{with gtest}
@@ -46,15 +47,15 @@ BuildRequires:	python-setuptools
 %if %{with java}
 BuildRequires:	java-devel >= 1.6
 BuildRequires:	jpackage-utils
-BuildRequires:  maven-local
-BuildRequires:  mvn(com.google.code.gson:gson)
-BuildRequires:  mvn(com.google.guava:guava)
-BuildRequires:  mvn(junit:junit)
-BuildRequires:  mvn(org.easymock:easymock)
-BuildRequires:  mvn(org.apache.felix:maven-bundle-plugin)
-BuildRequires:  mvn(org.apache.maven.plugins:maven-antrun-plugin)
-BuildRequires:  mvn(org.apache.maven.plugins:maven-source-plugin)
-BuildRequires:  mvn(org.codehaus.mojo:build-helper-maven-plugin)
+BuildRequires:	maven-local
+BuildRequires:	mvn(com.google.code.gson:gson)
+BuildRequires:	mvn(com.google.guava:guava)
+BuildRequires:	mvn(junit:junit)
+BuildRequires:	mvn(org.easymock:easymock)
+BuildRequires:	mvn(org.apache.felix:maven-bundle-plugin)
+BuildRequires:	mvn(org.apache.maven.plugins:maven-antrun-plugin)
+BuildRequires:	mvn(org.apache.maven.plugins:maven-source-plugin)
+BuildRequires:	mvn(org.codehaus.mojo:build-helper-maven-plugin)
 BuildRequires:	maven-compiler-plugin
 BuildRequires:	maven-install-plugin
 BuildRequires:	maven-jar-plugin
@@ -158,6 +159,7 @@ Summary:	Protocol Buffers C++ headers and libraries
 Group:		Development/Other
 Requires:	%{libname} = %{EVRD}
 Requires:	%{liblite} = %{EVRD}
+Requires:	%{libcompiler} = %{EVRD}
 Requires:	%{name}-compiler = %{EVRD}
 # protobuf is heavily dependent on absl these days
 Requires:	cmake(absl)
@@ -258,8 +260,8 @@ This package contains Java Protocol Buffers runtime library.
 #----------------------------------------------------------------------------
 
 %package javalite
-Summary:        Java Protocol Buffers lite runtime library
-BuildArch:      noarch
+Summary:	Java Protocol Buffers lite runtime library
+BuildArch:	noarch
 
 %description javalite
 This package contains Java Protocol Buffers lite runtime library.
@@ -270,8 +272,8 @@ This package contains Java Protocol Buffers lite runtime library.
 #----------------------------------------------------------------------------
 
 %package java-util
-Summary:        Utilities for Protocol Buffers
-BuildArch:      noarch
+Summary:	Utilities for Protocol Buffers
+BuildArch:	noarch
 
 %description java-util
 Utilities to work with protos. It contains JSON support
@@ -282,8 +284,8 @@ as well as utilities to work with proto3 well-known types.
 #----------------------------------------------------------------------------
 
 %package javadoc
-Summary:        Javadoc for %{name}-java
-BuildArch:      noarch
+Summary:	Javadoc for %{name}-java
+BuildArch:	noarch
 
 %description javadoc
 This package contains the API documentation for %{name}-java.
@@ -294,8 +296,8 @@ This package contains the API documentation for %{name}-java.
 #----------------------------------------------------------------------------
 
 %package parent
-Summary:        Protocol Buffer Parent POM
-BuildArch:      noarch
+Summary:	Protocol Buffer Parent POM
+BuildArch:	noarch
 
 %description parent
 Protocol Buffer Parent POM.
@@ -307,8 +309,8 @@ Protocol Buffer Parent POM.
 
 
 %package bom
-Summary:        Protocol Buffer BOM POM
-BuildArch:      noarch
+Summary:	Protocol Buffer BOM POM
+BuildArch:	noarch
 
 %description bom
 Protocol Buffer BOM POM.
@@ -406,6 +408,36 @@ install -p -m 644 -D editors/proto.vim %{buildroot}%{_datadir}/vim/vimfiles/synt
 %if %{with java}
 %mvn_install
 %endif
+
+# (tpg) strip LTO from "LLVM IR bitcode" files
+check_convert_bitcode() {
+    printf '%s\n' "Checking for LLVM IR bitcode"
+    llvm_file_name=$(realpath ${1})
+    llvm_file_type=$(file ${llvm_file_name})
+
+    if printf '%s\n' "${llvm_file_type}" | grep -q "LLVM IR bitcode"; then
+# recompile without LTO
+    clang %{optflags} -fno-lto -Wno-unused-command-line-argument -x ir ${llvm_file_name} -c -o ${llvm_file_name}
+    elif printf '%s\n' "${llvm_file_type}" | grep -q "current ar archive"; then
+    printf '%s\n' "Unpacking ar archive ${llvm_file_name} to check for LLVM bitcode components."
+# create archive stage for objects
+    archive_stage=$(mktemp -d)
+    archive=${llvm_file_name}
+    cd ${archive_stage}
+    ar x ${archive}
+    for archived_file in $(find -not -type d); do
+        check_convert_bitcode ${archived_file}
+        printf '%s\n' "Repacking ${archived_file} into ${archive}."
+        ar r ${archive} ${archived_file}
+    done
+    ranlib ${archive}
+    cd ..
+    fi
+}
+
+for i in $(find %{buildroot} -type f -name "*.[ao]"); do
+    check_convert_bitcode ${i}
+done
 
 #check
 # Tests are looking for yet another googletest setup in third_party/googletest
