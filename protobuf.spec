@@ -25,13 +25,14 @@
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
 Version:	23.0
-Release:	1
+Release:	2
 License:	BSD
 Group:		Development/Other
 Url:		https://github.com/protocolbuffers/protobuf
 Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	ftdetect-proto.vim
 Patch1:		protobuf-22.4-soname.patch
+Patch2:		protobuf-23.0-workaround-pkgconfig-infinite-loop.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	pkgconfig(zlib)
