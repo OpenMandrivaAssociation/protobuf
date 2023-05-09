@@ -2,7 +2,7 @@
 %global _disable_rebuild_configure 1
 
 # Major
-%define major 22
+%define major %(echo %{version}|cut -d. -f1)
 
 # Library names
 %define libname %mklibname %{name}
@@ -24,14 +24,13 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	22.4
-Release:	2
+Version:	23.0
+Release:	1
 License:	BSD
 Group:		Development/Other
 Url:		https://github.com/protocolbuffers/protobuf
 Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	ftdetect-proto.vim
-Patch0:		protobuf-22.2-libstdc++13.patch
 Patch1:		protobuf-22.4-soname.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
