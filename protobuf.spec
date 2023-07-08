@@ -24,7 +24,7 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	23.3
+Version:	23.4
 Release:	1
 License:	BSD
 Group:		Development/Other
