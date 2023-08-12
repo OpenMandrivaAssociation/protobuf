@@ -24,7 +24,7 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	23.4
+Version:	24.0
 Release:	1
 License:	BSD
 Group:		Development/Other
@@ -33,6 +33,11 @@ Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}
 Source1:	ftdetect-proto.vim
 Patch1:		protobuf-22.4-soname.patch
 Patch2:		protobuf-23.0-workaround-pkgconfig-infinite-loop.patch
+# Some Python binding tests are broken in 24.0
+# (build failure -- google/protobuf/unittest_arena.proto: is an editions file,
+# but code generator --python_out hasn't been updated to support editions yet.)
+# Disable them for now.
+Patch3:		protobuf-24.0-python-disable-broken-tests.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	pkgconfig(zlib)

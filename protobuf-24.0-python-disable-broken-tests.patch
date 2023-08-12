@@ -1,0 +1,12 @@
+diff -up protobuf-24.0/python/setup.py.omv~ protobuf-24.0/python/setup.py
+--- protobuf-24.0/python/setup.py.omv~	2023-08-12 02:40:56.288316777 +0200
++++ protobuf-24.0/python/setup.py	2023-08-12 02:41:02.492384229 +0200
+@@ -131,7 +131,7 @@ def GenerateUnittestProtos():
+   GenProto('../src/google/protobuf/map_unittest.proto', False)
+   GenProto('../src/google/protobuf/test_messages_proto3.proto', False)
+   GenProto('../src/google/protobuf/test_messages_proto2.proto', False)
+-  GenProto('../src/google/protobuf/unittest_arena.proto', False)
++#  GenProto('../src/google/protobuf/unittest_arena.proto', False)
+   GenProto('../src/google/protobuf/unittest.proto', False)
+   GenProto('../src/google/protobuf/unittest_custom_options.proto', False)
+   GenProto('../src/google/protobuf/unittest_import.proto', False)
