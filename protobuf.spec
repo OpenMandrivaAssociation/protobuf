@@ -24,7 +24,7 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	24.0
+Version:	24.1
 Release:	1
 License:	BSD
 Group:		Development/Other
@@ -37,7 +37,7 @@ Patch2:		protobuf-23.0-workaround-pkgconfig-infinite-loop.patch
 # (build failure -- google/protobuf/unittest_arena.proto: is an editions file,
 # but code generator --python_out hasn't been updated to support editions yet.)
 # Disable them for now.
-Patch3:		protobuf-24.0-python-disable-broken-tests.patch
+#Patch3:		protobuf-24.0-python-disable-broken-tests.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	pkgconfig(zlib)
