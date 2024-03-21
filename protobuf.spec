@@ -24,7 +24,7 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	25.2
+Version:	26.0
 Release:	1
 License:	BSD
 Group:		Development/Other
@@ -179,6 +179,7 @@ C++ headers and libraries.
 %doc examples/list_people.cc examples/Makefile examples/README.md
 %dir %{_includedir}/google
 %{_includedir}/google/%{name}/
+%{_includedir}/upb_generator
 %{_libdir}/lib%{name}.so
 %{_libdir}/lib%{name}-lite.so
 %{_libdir}/libprotoc.so
@@ -222,10 +223,9 @@ This package contains Python 3 bindings for Google Protocol Buffers.
 %files -n python-%{name}
 %doc python/README.md
 %doc examples/add_person.py examples/list_people.py examples/addressbook.proto
-%dir %{python_sitelib}/google
-%{python_sitelib}/google/%{name}/
-%{python_sitelib}/%{name}-*-py%{python_version}.egg-info/
-%{python_sitelib}/%{name}-*-py%{python_version}-nspkg.pth
+%{python_sitearch}/google
+%{python_sitearch}/protobuf-*.pth
+%{python_sitearch}/protobuf-*.*-info
 %endif
 
 #----------------------------------------------------------------------------
@@ -389,8 +389,7 @@ export PROTOC=$(pwd)/build-static/protoc
 
 %if %{with python}
 pushd python
-%__python ./setup.py build
-sed -i -e 1d build/lib/google/protobuf/descriptor_pb2.py
+python dist/setup.py build
 popd
 %endif
 
@@ -404,7 +403,7 @@ popd
 
 %if %{with python}
 pushd python
-%__python ./setup.py install --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
+./dist/setup.py install --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
 popd
 %endif
 
