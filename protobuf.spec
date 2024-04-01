@@ -24,13 +24,16 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	26.0
-Release:	1
+Version:	26.1
+Release:	2
 License:	BSD
 Group:		Development/Other
 Url:		https://github.com/protocolbuffers/protobuf
 Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	ftdetect-proto.vim
+%if %{with python}
+Source2:	https://files.pythonhosted.org/packages/source/p/protobuf/protobuf-5.%{version}.tar.gz
+%endif
 Patch1:		protobuf-22.4-soname.patch
 Patch2:		protobuf-23.0-workaround-pkgconfig-infinite-loop.patch
 # Some Python binding tests are broken in 24.0
@@ -388,9 +391,12 @@ export CMAKE_BUILD_DIR=build-static
 export PROTOC=$(pwd)/build-static/protoc
 
 %if %{with python}
-pushd python
-python dist/setup.py build
-popd
+# Sadly the build system for the internal python module is broken
+# beyond repair, so we grab the one from pypi
+tar xf %{S:2}
+cd protobuf-5.%{version}
+%py_build
+cd ..
 %endif
 
 %if %{with java}
@@ -402,9 +408,9 @@ popd
 %ninja_install -C build
 
 %if %{with python}
-pushd python
-./dist/setup.py install --root=%{buildroot} --single-version-externally-managed --record=INSTALLED_FILES --optimize=1
-popd
+cd protobuf-5.%{version}
+%py_install
+cd ..
 %endif
 
 install -p -m 644 -D %{SOURCE1} %{buildroot}%{_datadir}/vim/vimfiles/ftdetect/proto.vim
