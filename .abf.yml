@@ -1,3 +1,3 @@
 sources:
-  protobuf-5.26.1.tar.gz: 0bfa06049c21db0d5730c84b8ef21d8638d26d2a
-  protobuf-26.1.tar.gz: 509e85cfc38e096e4c6e152b365b8d3c2ed874be
+  protobuf-27.1.tar.gz: 0f55f676d2a32f87cb0c0ce1c6cd28ba1efc383e
+  protobuf-5.27.1.tar.gz: 0aebcec42106089149e2d830ddb0154ecb59e86f

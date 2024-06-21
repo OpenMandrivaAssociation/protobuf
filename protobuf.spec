@@ -24,8 +24,8 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	26.1
-Release:	2
+Version:	27.1
+Release:	1
 License:	BSD
 Group:		Development/Other
 Url:		https://github.com/protocolbuffers/protobuf
@@ -41,6 +41,7 @@ Patch2:		protobuf-23.0-workaround-pkgconfig-infinite-loop.patch
 # but code generator --python_out hasn't been updated to support editions yet.)
 # Disable them for now.
 #Patch3:		protobuf-24.0-python-disable-broken-tests.patch
+Patch4:		protobuf-c++20.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	pkgconfig(zlib)
@@ -147,6 +148,12 @@ languages.
 %doc LICENSE README.md
 %{_bindir}/protoc
 %{_bindir}/protoc-%{version}*
+%{_bindir}/protoc-gen-upb
+%{_bindir}/protoc-gen-upb-%{version}*
+%{_bindir}/protoc-gen-upb_minitable
+%{_bindir}/protoc-gen-upb_minitable-%{version}*
+%{_bindir}/protoc-gen-upbdefs
+%{_bindir}/protoc-gen-upbdefs-%{version}*
 
 #----------------------------------------------------------------------------
 
@@ -182,9 +189,11 @@ C++ headers and libraries.
 %doc examples/list_people.cc examples/Makefile examples/README.md
 %dir %{_includedir}/google
 %{_includedir}/google/%{name}/
+%{_includedir}/upb
 %{_includedir}/upb_generator
 %{_libdir}/lib%{name}.so
 %{_libdir}/lib%{name}-lite.so
+%{_libdir}/libupb.a
 %{_libdir}/libprotoc.so
 %{_libdir}/pkgconfig/%{name}.pc
 %{_libdir}/pkgconfig/%{name}-lite.pc
