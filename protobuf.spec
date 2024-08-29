@@ -24,7 +24,7 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	27.3
+Version:	28.0
 Release:	1
 License:	BSD
 Group:		Development/Other
@@ -112,6 +112,8 @@ This package contains the shared %{name} library.
 %files -n %{libname}
 %doc CONTRIBUTORS.txt LICENSE README.md
 %{_libdir}/lib%{name}.so.%{major}*
+%{_libdir}/libutf8_range.so
+%{_libdir}/libutf8_validity.so
 
 #----------------------------------------------------------------------------
 
@@ -200,8 +202,6 @@ C++ headers and libraries.
 %{_includedir}/utf8_*.h
 %{_libdir}/cmake/protobuf
 %{_libdir}/cmake/utf8_range
-%{_libdir}/libutf8_range.a
-%{_libdir}/libutf8_validity.a
 %{_libdir}/pkgconfig/utf8_range.pc
 
 #----------------------------------------------------------------------------
