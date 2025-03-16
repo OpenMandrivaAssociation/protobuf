@@ -1,6 +1,6 @@
-diff -up protobuf-23.0/cmake/protobuf-lite.pc.cmake.omv~ protobuf-23.0/cmake/protobuf-lite.pc.cmake
---- protobuf-23.0/cmake/protobuf-lite.pc.cmake.omv~	2023-05-10 00:52:56.232012328 +0200
-+++ protobuf-23.0/cmake/protobuf-lite.pc.cmake	2023-05-10 00:53:03.577067862 +0200
+diff -up protobuf-30.1/cmake/protobuf-lite.pc.cmake.2~ protobuf-30.1/cmake/protobuf-lite.pc.cmake
+--- protobuf-30.1/cmake/protobuf-lite.pc.cmake.2~	2025-03-13 20:50:35.000000000 +0100
++++ protobuf-30.1/cmake/protobuf-lite.pc.cmake	2025-03-14 10:21:52.292914803 +0100
 @@ -1,12 +1,11 @@
  prefix=@CMAKE_INSTALL_PREFIX@
  exec_prefix=@CMAKE_INSTALL_PREFIX@
@@ -16,9 +16,9 @@ diff -up protobuf-23.0/cmake/protobuf-lite.pc.cmake.omv~ protobuf-23.0/cmake/pro
 +Libs: -lprotobuf-lite @CMAKE_THREAD_LIBS_INIT@
 +Cflags: @_protobuf_PC_CFLAGS@
  Conflicts: protobuf
-diff -up protobuf-23.0/cmake/protobuf.pc.cmake.omv~ protobuf-23.0/cmake/protobuf.pc.cmake
---- protobuf-23.0/cmake/protobuf.pc.cmake.omv~	2023-05-10 00:52:45.505931253 +0200
-+++ protobuf-23.0/cmake/protobuf.pc.cmake	2023-05-10 00:53:07.268095772 +0200
+diff -up protobuf-30.1/cmake/protobuf.pc.cmake.2~ protobuf-30.1/cmake/protobuf.pc.cmake
+--- protobuf-30.1/cmake/protobuf.pc.cmake.2~	2025-03-14 10:21:52.292985978 +0100
++++ protobuf-30.1/cmake/protobuf.pc.cmake	2025-03-14 10:22:27.443455567 +0100
 @@ -1,12 +1,11 @@
  prefix=@CMAKE_INSTALL_PREFIX@
  exec_prefix=@CMAKE_INSTALL_PREFIX@
@@ -29,8 +29,8 @@ diff -up protobuf-23.0/cmake/protobuf.pc.cmake.omv~ protobuf-23.0/cmake/protobuf
  Description: Google's Data Interchange Format
  Version: @protobuf_VERSION@
  Requires: @_protobuf_PC_REQUIRES@
--Libs: -L${libdir} -lprotobuf @CMAKE_THREAD_LIBS_INIT@
+-Libs: -L${libdir} -lprotobuf@protobuf_LIBRARY_POSTFIX@ @CMAKE_THREAD_LIBS_INIT@
 -Cflags: -I${includedir} @_protobuf_PC_CFLAGS@
-+Libs: -lprotobuf @CMAKE_THREAD_LIBS_INIT@
++Libs: -lprotobuf@protobuf_LIBRARY_POSTFIX@ @CMAKE_THREAD_LIBS_INIT@
 +Cflags: @_protobuf_PC_CFLAGS@
  Conflicts: protobuf-lite

@@ -24,15 +24,15 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	28.3
-Release:	2
+Version:	30.1
+Release:	1
 License:	BSD
 Group:		Development/Other
 Url:		https://github.com/protocolbuffers/protobuf
 Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	ftdetect-proto.vim
 %if %{with python}
-Source2:	https://files.pythonhosted.org/packages/source/p/protobuf/protobuf-5.%{version}.tar.gz
+Source2:	https://files.pythonhosted.org/packages/source/p/protobuf/protobuf-6.%{version}.tar.gz
 %endif
 Patch1:		protobuf-22.4-soname.patch
 Patch2:		protobuf-23.0-workaround-pkgconfig-infinite-loop.patch
@@ -112,8 +112,8 @@ This package contains the shared %{name} library.
 %files -n %{libname}
 %doc CONTRIBUTORS.txt LICENSE README.md
 %{_libdir}/lib%{name}.so.%{major}*
-%{_libdir}/libutf8_range.so
-%{_libdir}/libutf8_validity.so
+%{_libdir}/libutf8_range.so.*
+%{_libdir}/libutf8_validity.so.*
 
 #----------------------------------------------------------------------------
 
@@ -192,9 +192,10 @@ C++ headers and libraries.
 %dir %{_includedir}/google
 %{_includedir}/google/%{name}/
 %{_includedir}/upb
-%{_includedir}/upb_generator
 %{_libdir}/lib%{name}.so
 %{_libdir}/lib%{name}-lite.so
+%{_libdir}/libutf8_range.so
+%{_libdir}/libutf8_validity.so
 %{_libdir}/libupb.a
 %{_libdir}/libprotoc.so
 %{_libdir}/pkgconfig/%{name}.pc
@@ -203,6 +204,7 @@ C++ headers and libraries.
 %{_libdir}/cmake/protobuf
 %{_libdir}/cmake/utf8_range
 %{_libdir}/pkgconfig/utf8_range.pc
+%{_libdir}/pkgconfig/upb.pc
 
 #----------------------------------------------------------------------------
 
@@ -236,7 +238,6 @@ This package contains Python 3 bindings for Google Protocol Buffers.
 %doc python/README.md
 %doc examples/add_person.py examples/list_people.py examples/addressbook.proto
 %{python_sitearch}/google
-%{python_sitearch}/protobuf-*.pth
 %{python_sitearch}/protobuf-*.*-info
 %endif
 
@@ -403,7 +404,7 @@ export PROTOC=$(pwd)/build-static/protoc
 # Sadly the build system for the internal python module is broken
 # beyond repair, so we grab the one from pypi
 tar xf %{S:2}
-cd protobuf-5.%{version}
+cd protobuf-6.%{version}
 %py_build
 cd ..
 %endif
@@ -417,7 +418,7 @@ cd ..
 %ninja_install -C build
 
 %if %{with python}
-cd protobuf-5.%{version}
+cd protobuf-6.%{version}
 %py_install
 cd ..
 %endif
