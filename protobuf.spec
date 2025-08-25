@@ -24,7 +24,7 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	30.2
+Version:	32.0
 Release:	1
 License:	BSD
 Group:		Development/Other
@@ -41,7 +41,6 @@ Patch2:		protobuf-23.0-workaround-pkgconfig-infinite-loop.patch
 # but code generator --python_out hasn't been updated to support editions yet.)
 # Disable them for now.
 #Patch3:		protobuf-24.0-python-disable-broken-tests.patch
-Patch4:		protobuf-c++20.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	pkgconfig(zlib)
@@ -379,6 +378,7 @@ chmod 644 examples/*.py
 	-Dprotobuf_USE_EXTERNAL_GTEST:BOOL=ON \
 	-Dprotobuf_ABSL_PROVIDER=package \
 	-Dprotobuf_BUILD_TESTS:BOOL=OFF \
+	-DCMAKE_CXX_STANDARD=20 \
 	-G Ninja
 
 cd ..
@@ -390,6 +390,7 @@ export CMAKE_BUILD_DIR=build-static
 	-Dprotobuf_USE_EXTERNAL_GTEST:BOOL=ON \
 	-Dprotobuf_ABSL_PROVIDER=package \
 	-Dprotobuf_BUILD_TESTS:BOOL=OFF \
+	-DCMAKE_CXX_STANDARD=20 \
 	-G Ninja
 
 %build
