@@ -1,3 +1,3 @@
 sources:
-  protobuf-32.1.tar.gz: cd0906096ab07c67d1b01b7dbe342d56459261e4
-  protobuf-6.32.1.tar.gz: 4ca397cc6dfe1c29874c61c3044b3331744a0255
+  protobuf-36.2.tar.gz: 038b2f5052459e9525f7910d1cc938abc74c1811
+  protobuf-7.36.2.tar.gz: b7549350d14dbcfacb2314e822a21cc012d86b93

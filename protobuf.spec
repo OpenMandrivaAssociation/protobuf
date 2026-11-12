@@ -24,15 +24,15 @@
 
 Summary:	Protocol Buffers - Google's data interchange format
 Name:		protobuf
-Version:	32.1
-Release:	5
+Version:	36.2
+Release:	1
 License:	BSD
 Group:		Development/Other
 Url:		https://github.com/protocolbuffers/protobuf
 Source0:	https://github.com/protocolbuffers/protobuf/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	ftdetect-proto.vim
 %if %{with python}
-Source2:	https://files.pythonhosted.org/packages/source/p/protobuf/protobuf-6.%{version}.tar.gz
+Source2:	https://files.pythonhosted.org/packages/source/p/protobuf/protobuf-7.%{version}.tar.gz
 %endif
 Patch1:		protobuf-22.4-soname.patch
 Patch2:		protobuf-23.0-workaround-pkgconfig-infinite-loop.patch
@@ -405,7 +405,7 @@ export PROTOC=$(pwd)/build-static/protoc
 # Sadly the build system for the internal python module is broken
 # beyond repair, so we grab the one from pypi
 tar xf %{S:2}
-cd protobuf-6.%{version}
+cd protobuf-7.%{version}
 %py_build
 cd ..
 %endif
@@ -419,7 +419,7 @@ cd ..
 %ninja_install -C build
 
 %if %{with python}
-cd protobuf-6.%{version}
+cd protobuf-7.%{version}
 %py_install
 cd ..
 %endif
